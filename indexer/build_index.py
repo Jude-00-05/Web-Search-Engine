@@ -8,7 +8,7 @@ with open("..\\data\\pages.json","r") as f:
     pages=json.load(f)
 
 with open ("..\\data\\stopwords.txt","r") as f:
-    stopwords=set(f.read().splitlines())
+    stopwords=set(word.lower() for word in f.read().splitlines())
     
 index=defaultdict(list)
 
