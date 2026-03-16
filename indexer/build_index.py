@@ -1,7 +1,9 @@
 import json 
 import re
 from collections import defaultdict
+from nltk.stem import PorterStemmer
 
+stemmer = PorterStemmer()
 with open("..\\data\\pages.json","r") as f:
     pages=json.load(f)
 
@@ -17,8 +19,9 @@ for doc_id, page in enumerate(pages):
     for word in words:
         if word in stopwords:
             continue
-        if doc_id not in index[word]:
-            index[word].append(doc_id)
+        stemmed=stemmer.stem(word)
+        if doc_id not in index[stemmed]:
+            index[stemmed].append(doc_id)
 
 with open("..\\data\\inverted_index.json","w") as f:
     json.dump(index,f,indent=4)

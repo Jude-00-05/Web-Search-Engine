@@ -45,7 +45,7 @@ def crawl(url):
         if href and not href.startswith('#') :
             full_url=urljoin(url,href)
 
-            if full_url.startswith("https://en.wikipedia.org") and full_url not in visited and full_url not in to_visit:
+            if full_url.startswith("https://en.wikipedia.org/wiki/") and full_url not in visited and full_url not in to_visit:
                 to_visit.append(full_url)
 seed_url = "https://en.wikipedia.org/wiki/Search_engine"
 
@@ -56,7 +56,7 @@ while to_visit and len(visited)<20:
     url=to_visit.pop(0)
     crawl(url)
 
-with open("..\data\pages.json","w") as f:
+with open("..//data/pages.json","w") as f:
     json.dump(pages,f,indent=4)
 print("Finished crawling. Pages saved to pages.json")
 

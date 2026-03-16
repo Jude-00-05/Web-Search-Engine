@@ -1,6 +1,7 @@
 import json 
 import re
-
+from nltk.stem import PorterStemmer
+stemmer = PorterStemmer()
 with open("../data/pages.json","r") as f:
     pages=json.load(f)
 with open("../data/inverted_index.json","r") as f:
@@ -11,6 +12,7 @@ with open("..\\data\\stopwords.txt","r") as f:
 def search(query):
     query=query.lower()
     words=re.findall(r'\b\w+\b',query)
+    words=[stemmer.stem(word) for word in words]
     words=[word for word in words if word not in stopwords]
     scores={}
     for word in words:
