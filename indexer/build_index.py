@@ -2,18 +2,25 @@ import json
 import re
 from collections import defaultdict
 
-with open("C:\\Projects\\Web Search Engine\\data\\pages.json","r") as f:
+with open("..\\data\\pages.json","r") as f:
     pages=json.load(f)
+
+with open ("..\\data\\stopwords.txt","r") as f:
+    stopwords=set(f.read().splitlines())
+    
 index=defaultdict(list)
 
-for doc_id,page in enumerate(pages):
-    text=page['text'].lower()
-    words=re.findall(r'\b\w+\b',text)
-    unique_words=set(words)
-    for word in unique_words: 
-        index[word].append(doc_id)
+for doc_id, page in enumerate(pages):
 
-with open("C:\\Projects\\Web Search Engine\\data\\inverted_index.json","w") as f:
+    text = page["text"].lower()
+    words = re.findall(r'\b\w+\b', text)
+    for word in words:
+        if word in stopwords:
+            continue
+        if doc_id not in index[word]:
+            index[word].append(doc_id)
+
+with open("..\\data\\inverted_index.json","w") as f:
     json.dump(index,f,indent=4)
 
 print("Index built successfully.")

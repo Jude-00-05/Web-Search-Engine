@@ -1,15 +1,17 @@
 import json 
 import re
 
-with open("C:/Projects/Web Search Engine/data/pages.json","r") as f:
+with open("../data/pages.json","r") as f:
     pages=json.load(f)
-with open("C:/Projects/Web Search Engine/data/inverted_index.json","r") as f:
+with open("../data/inverted_index.json","r") as f:
     index=json.load(f)
+with open("..\\data\\stopwords.txt","r") as f:
+    stopwords=set(f.read().splitlines())
 
 def search(query):
     query=query.lower()
     words=re.findall(r'\b\w+\b',query)
-
+    words=[word for word in words if word not in stopwords]
     scores={}
     for word in words:
         if word in index:
