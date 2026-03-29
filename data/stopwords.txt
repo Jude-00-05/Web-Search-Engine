@@ -34,3 +34,15 @@ between
 during
 without
 within
+can
+do
+has
+have
+if
+not
+than
+then
+there
+these
+those
+your

@@ -1,0 +1,37 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Node dependencies
+backend/node_modules/
+frontend/node_modules/
+
+# Build output
+frontend/build/
+frontend/.cache/
+
+# Generated data artifacts and reports
+data/fetch_report.json
+data/index_report.json
+data/link_check_report.json
+data/validation_report.json
+data/tmp/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
