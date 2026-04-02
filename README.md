@@ -1,97 +1,107 @@
 # Dataset Search Engine
 
-A full-stack dataset discovery app built inside the existing `Web Search Engine` folder. It aggregates datasets from multiple sources, normalizes them into one schema, builds an inverted index with Python, serves ranked search through a Node API, and presents everything in a polished React interface.
+Dataset Search Engine is a multi-source dataset discovery platform built in the `Web Search Engine` repository. It combines a Python ingestion and indexing pipeline with a Node.js API and a React frontend so users can search, filter, and explore datasets from several public sources through one interface.
 
-## What It Does
+## Repository Purpose
 
-- Searches datasets such as `fresh vs rotten fruits`, `mental health csv`, `image classification datasets`, and `indian traffic dataset`
-- Normalizes data from multiple sources into a shared schema
-- Builds a field-weighted inverted index
-- Serves a REST API from Node.js and Express
-- Renders a modern responsive search experience in React
+This project is designed to:
 
-## Architecture
+- aggregate dataset metadata from multiple public providers
+- normalize records into one consistent schema
+- validate and clean the merged catalog
+- build an inverted index for fast local search
+- expose ranked search and catalog APIs
+- provide a polished browser UI for exploration
+- optionally run live "Deep Search" queries against source systems for fresh results
 
-### Data pipeline
+## Current Product Scope
 
-- `sources/adapter_huggingface.py`
-- `sources/adapter_uci.py`
-- `sources/adapter_kaggle.py`
-- `sources/adapter_datagov.py`
-- `sources/adapter_github.py`
-- `scripts/fetch_all.py`
-- `scripts/build_index.py`
+The current implementation includes:
 
-Python is only used for fetching, normalizing, deduplicating, and indexing data.
+- indexed catalog search over generated local JSON data
+- filter support for source, format, and task type
+- weighted ranking tuned for dataset discovery intent
+- live deep-search requests for broader source coverage
+- data quality scripts for validation and link checking
+- a legacy Python prototype kept in the repo for reference
 
-### Backend
+## Tech Stack
 
-- `backend/server.js`
+- Frontend: React
+- API: Node.js + Express
+- Data pipeline: Python
+- Storage: generated JSON artifacts in `data/`
 
-The Node API reads `data/merged_datasets.json` and `data/inverted_index.json` directly. It does not call Python during requests.
+## High-Level Architecture
 
-### Frontend
+1. Python source adapters fetch dataset metadata from Hugging Face, UCI, Kaggle, Data.gov, and GitHub.
+2. The pipeline validates, deduplicates, and normalizes records into `data/merged_datasets.json`.
+3. The index builder creates `data/inverted_index.json` for search-time retrieval.
+4. The Node API reads those generated files directly and serves ranked search responses.
+5. The React frontend calls the API and renders search, filters, and result cards.
+6. Optional Deep Search bypasses the local index and queries live external sources at request time.
 
-- `frontend/src/App.js`
-- `frontend/src/App.css`
+More detail lives in [docs/ARCHITECTURE.md](/c:/Projects/Web%20Search%20Engine/docs/ARCHITECTURE.md).
 
-The React app calls the Node API through the CRA development proxy.
+## Repository Layout
 
-## Normalized Dataset Schema
-
-```json
-{
-  "id": "unique_source_id",
-  "title": "Dataset Title",
-  "description": "Short description",
-  "tags": ["tag1", "tag2"],
-  "source": "huggingface",
-  "url": "https://...",
-  "license": "optional",
-  "formats": ["csv", "json"],
-  "task_types": ["classification", "nlp"],
-  "size": "optional",
-  "downloads": 0,
-  "last_updated": "YYYY-MM-DD",
-  "language": "optional"
-}
+```text
+Web Search Engine/
+|-- backend/               Node API and live deep-search integrations
+|-- crawler/               Legacy crawling utilities
+|-- data/                  Seeded and generated catalog/index artifacts
+|-- docs/                  Repository documentation
+|-- frontend/              React application
+|-- scripts/               Pipeline orchestration and maintenance scripts
+|-- search/                Legacy Python search prototype
+|-- search_engine/         Legacy Flask/Node experiment code
+|-- sources/               Dataset source adapters and validation helpers
+|-- .env.example
+|-- CONTRIBUTING.md
+`-- README.md
 ```
 
-## Search Ranking
+## Supported Sources
 
-The backend uses weighted scoring:
+- Hugging Face
+- UCI Machine Learning Repository
+- Kaggle
+- Data.gov
+- GitHub repositories with dataset signals
 
-- title match = 3 points
-- tags match = 2 points
-- task type match = 2 points
-- description match = 1 point
-- format match = 1 point
+Some adapters work with graceful fallbacks or partial coverage when credentials or network access are limited. Deep Search coverage is intentionally broader but less controlled than the curated local index.
 
-It supports multi-word queries and light partial matching by expanding indexed terms that start with the query token.
+## Search Experience
 
-## API Endpoints
+The indexed search flow prioritizes:
 
-### `GET /api/health`
+- title matches
+- tags
+- task types
+- descriptions
+- formats
 
-Returns service health plus dataset and index counts.
+The API also applies:
 
-### `GET /api/search?q=...`
+- phrase boosts
+- source trust weighting
+- intent expansions for specific query themes
+- penalties for weak or mismatched results
 
-Returns ranked datasets. Optional filters:
+This makes the local search experience stronger than a plain keyword lookup while staying easy to operate from flat files.
 
-- `sources=huggingface,uci`
-- `formats=csv,image`
-- `tasks=classification,nlp`
+## API Summary
 
-### `GET /api/datasets`
+The primary API lives in `backend/server.js`.
 
-Returns paginated datasets with optional filters.
+- `GET /api/health`
+- `GET /api/search?q=...`
+- `GET /api/datasets?page=1&limit=12`
+- `GET /api/sources`
+- `GET /api/deep-search?q=...`
+- `POST /api/reload`
 
-### `GET /api/sources`
-
-Returns available sources and counts.
-
-## Setup
+## Quick Start
 
 ### 1. Install frontend dependencies
 
@@ -109,106 +119,112 @@ npm install
 
 ### 3. Install Python dependencies
 
-Create a virtual environment if you want, then install:
-
 ```bash
 pip install nltk huggingface_hub ucimlrepo
 ```
 
-Optional for future credentialed adapters:
+Optional environment variables:
 
-- Kaggle API credentials through `KAGGLE_USERNAME` and `KAGGLE_KEY`
-- GitHub token through `GITHUB_TOKEN`
+- `PORT`
+- `KAGGLE_USERNAME`
+- `KAGGLE_KEY`
+- `GITHUB_TOKEN`
 
-## Build the Dataset Catalog
+Start from [.env.example](/c:/Projects/Web%20Search%20Engine/.env.example).
 
-### Fetch and merge all datasets
-
-```bash
-python scripts/fetch_all.py
-```
-
-### Build the inverted index
-
-```bash
-python scripts/build_index.py
-```
-
-The repository already includes a seeded `merged_datasets.json` so the app is usable before live source fetching is configured.
-
-## Run the App
-
-### Start the backend
+### 4. Run the backend
 
 ```bash
 cd backend
 npm start
 ```
 
-### Start the frontend
+### 5. Run the frontend
 
 ```bash
 cd frontend
 npm start
 ```
 
-Open `http://localhost:3000`.
+The React app uses a development proxy to `http://localhost:3001`.
 
-## Notes on Source Adapters
+## Data Pipeline Commands
 
-### Hugging Face
+Fetch, clean, and merge data:
 
-Uses `huggingface_hub` when installed. Falls back to seeded datasets if the package or network is unavailable.
-
-### UCI
-
-Uses `ucimlrepo` when installed. Falls back to seeded datasets if needed.
-
-### Kaggle
-
-Scaffolded cleanly with environment-variable support. It currently falls back to seeded entries until credentials are supplied and the official API is wired.
-
-### Data.gov
-
-Uses the public CKAN API when available, with graceful fallback.
-
-### GitHub
-
-Uses the GitHub search API when `GITHUB_TOKEN` is present, with graceful fallback.
-
-## Project Structure
-
-```text
-Web Search Engine/
-|-- backend/
-|   |-- package.json
-|   `-- server.js
-|-- data/
-|   |-- merged_datasets.json
-|   |-- inverted_index.json
-|   `-- stopwords.txt
-|-- frontend/
-|   |-- public/
-|   |-- src/
-|   `-- package.json
-|-- scripts/
-|   |-- build_index.py
-|   `-- fetch_all.py
-|-- sources/
-|   |-- adapter_datagov.py
-|   |-- adapter_github.py
-|   |-- adapter_huggingface.py
-|   |-- adapter_kaggle.py
-|   |-- adapter_uci.py
-|   |-- common.py
-|   `-- seed_datasets.py
-`-- README.md
+```bash
+python scripts/fetch_all.py
 ```
 
-## Future Improvements
+Validate merged datasets:
 
-- Persist richer per-source metadata
-- Add result pagination in the UI
-- Add sort controls for relevance, downloads, and freshness
-- Expand live source coverage with authenticated Kaggle and GitHub adapters
-- Add saved searches and dataset bookmarks
+```bash
+python scripts/validate_datasets.py
+```
+
+Check dataset links:
+
+```bash
+python scripts/check_links.py
+```
+
+Build the inverted index:
+
+```bash
+python scripts/build_index.py
+```
+
+Run the full rebuild flow:
+
+```bash
+python scripts/rebuild_pipeline.py
+```
+
+## Generated Artifacts
+
+Common generated files in `data/`:
+
+- `merged_datasets.json`
+- `inverted_index.json`
+- `fetch_report.json`
+- `validation_report.json`
+- `link_check_report.json`
+- `index_report.json`
+
+These artifacts are environment-dependent. Counts may differ between runs depending on network access, third-party API behavior, credentials, and validation outcomes.
+
+## Legacy Areas
+
+The repository contains older prototype code in `search/`, `search_engine/`, and parts of `crawler/`.
+
+For active development, treat these as reference or historical implementation paths unless you are explicitly reviving them. The current product path is:
+
+- `frontend/`
+- `backend/`
+- `scripts/`
+- `sources/`
+- `data/`
+
+## Recommended GitHub Usage
+
+This repository is best presented on GitHub with:
+
+- this README as the entry point
+- [CONTRIBUTING.md](/c:/Projects/Web%20Search%20Engine/CONTRIBUTING.md) for contributor guidance
+- [docs/ARCHITECTURE.md](/c:/Projects/Web%20Search%20Engine/docs/ARCHITECTURE.md) for engineering context
+- [docs/OPERATIONS.md](/c:/Projects/Web%20Search%20Engine/docs/OPERATIONS.md) for maintenance and runbook notes
+
+## Known Gaps
+
+- no formal CI workflow is defined in this repository yet
+- backend automated tests are not present
+- frontend still includes CRA default test scaffolding
+- Kaggle live search is currently query-mapped rather than fully API-driven
+- legacy directories should eventually be archived, documented further, or removed
+
+## Next Documentation Improvements
+
+- add a `LICENSE` file once the intended license is confirmed
+- add issue and pull request templates
+- add screenshots or a short demo GIF for the UI
+- document deployment expectations if the app will be hosted
